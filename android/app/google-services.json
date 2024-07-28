@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "383029520760",
+    "project_id": "flutterteaapp-123",
+    "storage_bucket": "flutterteaapp-123.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:383029520760:android:cf928966921e65af74808d",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOcVsdNoU294xv4dXs8nEP8a1HN0ACLF8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
