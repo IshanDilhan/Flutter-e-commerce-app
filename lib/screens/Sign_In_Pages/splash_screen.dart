@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
-import 'package:myapp/screens/home_screen.dart';
-import 'package:myapp/screens/login_page.dart';
-import 'package:myapp/screens/sign_up_page.dart';
+import 'package:myapp/screens/main_screen.dart';
+import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
+import 'package:myapp/screens/Sign_In_Pages/sign_up_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

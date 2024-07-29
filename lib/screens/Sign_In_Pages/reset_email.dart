@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:myapp/screens/login_page.dart';
-import 'package:myapp/screens/sign_up_page.dart';
+import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
+import 'package:myapp/screens/Sign_In_Pages/sign_up_page.dart';
 
 class ResetEmail extends StatefulWidget {
   const ResetEmail({super.key});
