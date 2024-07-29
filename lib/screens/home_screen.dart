@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/screens/login_page.dart'; // Import your login page
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String? username;
+
   Future<void> fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -22,6 +24,15 @@ class _HomePageState extends State<HomePage> {
         username = userDoc['username'];
       });
     }
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
   }
 
   @override
@@ -71,9 +82,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 10.0),
             ElevatedButton(
-              onPressed: () {
-                // Add logout logic here
-              },
+              onPressed: _logout,
               child: const Text('Logout'),
             ),
           ],
