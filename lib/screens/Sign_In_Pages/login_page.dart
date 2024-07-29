@@ -18,6 +18,26 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+  void _showDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Message"),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void userLogin() async {
     var logger = Logger();
 
@@ -27,33 +47,28 @@ class _LoginPageState extends State<LoginPage> {
       logger.i("User logged in successfully: $email");
 
       Navigator.push(
-          // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()));
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         logger.w("No user found for email: $email");
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "No User Found for that Email",
-              style: TextStyle(fontSize: 18.0),
-            )));
+        _showDialog(context, "No User Found for that Email");
       } else if (e.code == 'wrong-password') {
         logger.w("Wrong password provided for email: $email");
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "Wrong Password Provided by User",
-              style: TextStyle(fontSize: 18.0),
-            )));
+        _showDialog(context, "Wrong Password Provided by User");
       } else {
         logger.e("Error during login: ${e.message}");
+        // ignore: use_build_context_synchronously
+        _showDialog(context, "Error during login plese check and retry");
       }
     } catch (e) {
       logger.e("Unexpected error: $e");
+      // ignore: use_build_context_synchronously
+      _showDialog(context, "Unexpected error: $e");
     }
   }
 

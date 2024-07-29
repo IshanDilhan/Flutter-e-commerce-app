@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String? username;
-
-  const HomeScreen({super.key, this.username});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -18,14 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Use widget.username if it's already passed or fetch from Firestore if not
-    if (widget.username == null) {
-      fetchUserData();
-    } else {
-      setState(() {
-        username = widget.username;
-      });
-    }
+
+    fetchUserData();
   }
 
   Future<void> fetchUserData() async {

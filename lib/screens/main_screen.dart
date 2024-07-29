@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/Admin/admin_page.dart';
 import 'package:myapp/screens/CarPages/cart_screens.dart';
 import 'package:myapp/screens/CarPages/favourite_page.dart';
 import 'package:myapp/screens/CarPages/home_page.dart';
@@ -17,6 +18,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _screens = [
     const HomeScreen(), // Pass parameters later
     const FavoriteScreen(),
+    const AdminPage(),
     const CartScreen(),
     const ProfileScreen(),
   ];
@@ -24,9 +26,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('RideTime Car Sale'),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('RideTime Car Sale'),
+      // ),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -47,6 +49,13 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(
               icon: Icon(Icons.favorite_outlined), label: "Favorite"),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.add_circle,
+              size: 30,
+            ),
+            label: "addItem",
+          ),
           BottomNavigationBarItem(
               icon: Icon(Icons.shopping_cart), label: "Cart"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile")
