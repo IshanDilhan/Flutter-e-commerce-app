@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
-import 'package:myapp/Admin/admin_page.dart';
+import 'package:myapp/screens/Admin/admin_page.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,16 +18,14 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController editusernamecontroler = TextEditingController();
+
   String? username;
-
   String? email;
-  @override
-  void initState() {
-    super.initState();
-    // Use widget.username if it's already passed or fetch from Firestore if not
+  String? filepath;
+  String? profileImageUrl;
+  XFile? pickedFile;
 
-    fetchUserData();
-  }
+  final ImagePicker _picker = ImagePicker();
 
   Future<void> fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -35,8 +37,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         username = userDoc['username'];
         email = userDoc['email'];
+        //profileImageUrl = userDoc['profileImageUrl'];
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Use widget.username if it's already passed or fetch from Firestore if not
+
+    fetchUserData();
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -69,6 +80,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> selectImage() async {
+    try {
+      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        Logger().i('Image selected: ${pickedFile?.path}');
+
+        File? croppedImg =
+            // ignore: use_build_context_synchronously
+            await cropImage(context, File(pickedFile?.path as String));
+        if (croppedImg != null) {
+          Logger().i("Cropped correctly: ${croppedImg.path}");
+          setState(() {
+            // Update the state to refresh the UI
+            filepath = croppedImg.path;
+          });
+        } else {
+          Logger().i("Cropping canceled or failed.");
+        }
+      } else {
+        Logger().i('Image selection was cancelled or failed.');
+      }
+    } catch (e) {
+      Logger().e('Error selecting image: $e');
+    }
+  }
+
+  Future<File?> cropImage(BuildContext context, File file) async {
+    try {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: const Color.fromARGB(255, 158, 39, 146),
+            toolbarWidgetColor: Colors.white,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(),
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Cropper',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(), // IMPORTANT: iOS supports only one custom aspect ratio in preset list
+            ],
+          ),
+          WebUiSettings(
+            context: context,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        Logger().i('Image cropped: ${croppedFile.path}');
+        return File(croppedFile.path);
+      } else {
+        Logger().i('Image cropping was cancelled or failed.');
+        return null;
+      }
+    } catch (e) {
+      Logger().e('Error cropping image: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,48 +157,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               // Background Image Container
-              Container(
-                height: 100,
-                decoration: const BoxDecoration(
-                  color: Colors.grey,
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: AssetImage("assets/2.jpg"),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Profile Image Container
-              GestureDetector(
-                onTap: () {
-                  // Placeholder for profile image picking logic
-                },
-                child: Align(
-                  alignment: Alignment.center,
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundImage: const NetworkImage(
-                        "https://www.gravatar.com/avatar?d=mp"), // Placeholder image
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          bottom: 6,
-                          right: 6,
-                          child: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: Colors.black.withOpacity(0.5),
-                            child: const Icon(
-                              Icons.edit,
-                              size: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      ],
+              SizedBox(
+                height: 200,
+                child: Stack(children: [
+                  Container(
+                    height: 150,
+                    decoration: const BoxDecoration(
+                      color: Colors.grey,
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image: AssetImage("assets/2.jpg"),
+                      ),
                     ),
                   ),
-                ),
+                  GestureDetector(
+                    onTap: () {
+                      selectImage();
+                    },
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage: pickedFile != null
+                            ? FileImage(File(
+                                filepath!)) // Use the path property of XFile
+                            : const NetworkImage(
+                                "https://www.gravatar.com/avatar?d=mp"),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              bottom: 6,
+                              right: 6,
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: Colors.black.withOpacity(0.5),
+                                child: const Icon(
+                                  Icons.edit,
+                                  size: 15,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ]),
               ),
+
+              // Profile Image Container
+
               const SizedBox(height: 16),
               // Name
               Text(
@@ -214,4 +303,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+
+class CropAspectRatioPresetCustom implements CropAspectRatioPresetData {
+  @override
+  (int, int)? get data => (2, 3);
+
+  @override
+  String get name => '2x3 (customized)';
 }

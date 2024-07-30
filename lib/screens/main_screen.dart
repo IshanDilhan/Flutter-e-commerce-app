@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/Admin/admin_page.dart';
+import 'package:myapp/screens/Admin/admin_page.dart';
 import 'package:myapp/screens/CarPages/cart_screens.dart';
 import 'package:myapp/screens/CarPages/favourite_page.dart';
 import 'package:myapp/screens/CarPages/home_page.dart';
