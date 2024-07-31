@@ -8,7 +8,10 @@ class StorageController {
     try {
       final reference = FirebaseStorage.instance.ref("$path/$fileName");
       final uploadTask = reference.putFile(file);
-      final taskSnapshot = await uploadTask.whenComplete(() {});
+      final taskSnapshot = await uploadTask.whenComplete(() {
+        Logger().i("Upload completed");
+      });
+
       return await taskSnapshot.ref.getDownloadURL();
     } catch (e) {
       Logger().e(e);

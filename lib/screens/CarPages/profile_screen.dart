@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
+import 'package:myapp/controllers/storage_controller.dart';
 import 'package:myapp/screens/Admin/admin_page.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 
@@ -24,15 +25,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? filepath;
   String? profileImageUrl;
   XFile? pickedFile;
+  User? user;
 
   final ImagePicker _picker = ImagePicker();
 
   Future<void> fetchUserData() async {
-    User? user = FirebaseAuth.instance.currentUser;
+    user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('User')
-          .doc(user.uid)
+          .doc(user?.uid)
           .get();
       setState(() {
         username = userDoc['username'];
@@ -80,6 +82,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> updateProfileimagelink(String imageURL) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('User')
+            .doc(user.uid)
+            .update({'imageURL': imageURL});
+        // Optionally, you can show a success message or handle post-update logic here
+        Logger().i('imageURL updated');
+      } catch (e) {
+        // Handle errors here, for example by showing an error message
+        Logger().i('Failed to update imageURL: $e');
+      }
+    } else {
+      // Handle the case where no user is signed in
+      Logger().i('No user is signed in.');
+    }
+  }
+
   Future<void> selectImage() async {
     try {
       pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -96,6 +119,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Update the state to refresh the UI
             filepath = croppedImg.path;
           });
+          final storageController = StorageController();
+          final downloadURL = await storageController.uploadImage(
+              'images', "${user?.uid}.jpg", croppedImg);
+
+          if (downloadURL.isNotEmpty) {
+            Logger().i("Image uploaded successfully: $downloadURL");
+            updateProfileimagelink(downloadURL);
+          } else {
+            Logger().e("Failed to upload image");
+          }
         } else {
           Logger().i("Cropping canceled or failed.");
         }
@@ -111,6 +144,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: file.path,
+        compressFormat: ImageCompressFormat.jpg,
+        maxHeight: 512,
+        maxWidth: 512,
+        compressQuality: 60,
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'Cropper',
