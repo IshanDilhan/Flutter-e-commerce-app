@@ -6,6 +6,7 @@ class CarModel {
   int year;
   double price;
   int mileage;
+  int tpnumber;
   String condition;
   String description;
   String location;
@@ -19,6 +20,7 @@ class CarModel {
     required this.year,
     required this.price,
     required this.mileage,
+    required this.tpnumber,
     required this.condition,
     required this.description,
     required this.location,
@@ -34,6 +36,7 @@ class CarModel {
       year: json['year'],
       price: (json['price'] as num).toDouble(),
       mileage: json['mileage'],
+      tpnumber: json['tpnumber'],
       condition: json['condition'],
       description: json['description'],
       location: json['location'],
@@ -50,6 +53,7 @@ class CarModel {
       'year': year,
       'price': price,
       'mileage': mileage,
+      'tpnumber': tpnumber,
       'condition': condition,
       'description': description,
       'location': location,

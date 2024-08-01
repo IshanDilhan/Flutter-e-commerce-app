@@ -8,6 +8,7 @@ import 'package:myapp/controllers/storage_controller.dart';
 import 'dart:io';
 
 import 'package:myapp/models/car_model.dart';
+import 'package:myapp/screens/Admin/carview.dart';
 
 class AddItemPage extends StatefulWidget {
   const AddItemPage({super.key});
@@ -24,11 +25,13 @@ class _AddItemPageState extends State<AddItemPage> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _mileageController = TextEditingController();
   final TextEditingController _conditionController = TextEditingController();
+  final TextEditingController _tpnumberController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   List<XFile>? _photos = [];
   List<String> downloadUrls = [];
+
   final Logger _logger = Logger();
   void _clearAllFields() {
     _carNameController.clear();
@@ -172,6 +175,7 @@ class _AddItemPageState extends State<AddItemPage> {
         final int year = int.parse(_yearController.text);
         final double price = double.parse(_priceController.text);
         final int mileage = int.parse(_mileageController.text);
+        final int tpnumber = int.parse(_tpnumberController.text);
 
         // Create CarModel instance
         final car = CarModel(
@@ -182,12 +186,13 @@ class _AddItemPageState extends State<AddItemPage> {
           year: year,
           price: price,
           mileage: mileage,
+          tpnumber: tpnumber,
           condition: _conditionController.text,
           description: _descriptionController.text,
           location: _locationController.text,
           photos: downloadUrls,
         );
-
+        // Logger().t(car.tpnumber);
         _logger.i('Storing car data in Firestore...');
         await FirebaseFirestore.instance
             .collection('cars')
@@ -209,6 +214,11 @@ class _AddItemPageState extends State<AddItemPage> {
         setState(() {
           _photos = [];
         });
+        Navigator.push(
+          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(builder: (context) => const ViewCarsPage()),
+        );
       } catch (e) {
         // Handle parsing errors
         _logger.e('Error occurred: $e');
@@ -216,7 +226,7 @@ class _AddItemPageState extends State<AddItemPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'Please enter valid numeric values for year, price, and mileage.'),
+                'Please enter valid numeric values for year, price,phonenumber, and mileage.'),
           ),
         );
       }
@@ -400,6 +410,12 @@ class _AddItemPageState extends State<AddItemPage> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10.0),
+              _buildTextFormField(
+                  _tpnumberController, "Phone number", Icons.phone,
+                  keyboardType: TextInputType.number),
+              const SizedBox(height: 10.0),
+
               const SizedBox(height: 10.0),
               _buildTextFormField(
                   _locationController, "Location", Icons.location_on),
