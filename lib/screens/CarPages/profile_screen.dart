@@ -91,6 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> selectImage() async {
+    User? user = FirebaseAuth.instance.currentUser;
     try {
       pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 

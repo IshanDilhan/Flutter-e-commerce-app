@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/screens/Admin/admin_page.dart';
+import 'package:myapp/screens/Admin/add_item.dart';
 import 'package:myapp/screens/CarPages/cart_screens.dart';
 import 'package:myapp/screens/CarPages/favourite_page.dart';
 import 'package:myapp/screens/CarPages/home_page.dart';
@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _screens = [
     const HomeScreen(), // Pass parameters later
     const FavoriteScreen(),
-    const AdminPage(),
+    const AddItemPage(),
     const CartScreen(),
     const ProfileScreen(),
   ];
