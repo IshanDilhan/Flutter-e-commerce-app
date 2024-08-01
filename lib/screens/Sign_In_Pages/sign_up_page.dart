@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:myapp/providers/profile_provider.dart';
 import 'package:myapp/screens/main_screen.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/service/database.dart';
+import 'package:provider/provider.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -46,12 +48,15 @@ class _SignupPageState extends State<SignupPage> {
           "email": email,
           "userId": userCredential.user?.uid,
           "username": username,
-          "imageURL": "",
+          "imageURL": "https://www.gravatar.com/avatar?d=mp",
           // Add other user info fields if necessary
         };
 
         // Add user info to Firestore
         await DatabaseMethods().addUser(userCredential.user!.uid, userInfoMap);
+
+        // ignore: use_build_context_synchronously
+        context.read<UserInfoProvider>().setUserInfo(userInfoMap);
 
         logger.i(
             "User information stored successfully in Firestore for user: ${userCredential.user?.email}");

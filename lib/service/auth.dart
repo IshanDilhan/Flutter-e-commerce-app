@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:myapp/providers/profile_provider.dart';
 import 'package:myapp/screens/main_screen.dart';
 import 'package:myapp/service/database.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class AuthMethods {
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -39,6 +41,10 @@ class AuthMethods {
         "imgUrl": userDetails.photoURL,
         "id": userDetails.uid
       };
+      // ignore: use_build_context_synchronously
+      context.read<UserInfoProvider>().setUserInfo(userInfoMap);
+      Logger().i("saved in provider");
+
       await DatabaseMethods()
           .addUser(userDetails.uid, userInfoMap)
           .then((value) {

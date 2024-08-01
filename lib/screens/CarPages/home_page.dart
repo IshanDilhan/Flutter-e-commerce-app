@@ -1,7 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/providers/profile_provider.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,21 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
-    fetchUserData();
-  }
-
-  Future<void> fetchUserData() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(user.uid)
-          .get();
-      setState(() {
-        username = userDoc['username'];
-      });
-    }
   }
 
   @override
@@ -39,11 +25,15 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Center(
-            child: username == null
-                ? const CircularProgressIndicator()
-                : Text('Welcome, $username to Tea app',
-                    style: const TextStyle(fontSize: 20)),
+          Consumer<UserInfoProvider>(
+            builder: (context, userInfoProvider, child) {
+              final username = userInfoProvider.userInfo["username"];
+
+              return username == null
+                  ? const CircularProgressIndicator()
+                  : Text('Welcome, $username to Tea app',
+                      style: const TextStyle(fontSize: 20));
+            },
           ),
           const SizedBox(height: 20.0),
           ElevatedButton(
