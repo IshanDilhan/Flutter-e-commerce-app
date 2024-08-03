@@ -66,6 +66,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> deleteImage(String imageurl) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('User')
+            .doc(user.uid)
+            .update({'imageURL': 'https://www.gravatar.com/avatar?d=mp'});
+
+        // Update UserInfoProvider
+        // ignore: use_build_context_synchronously
+        context
+            .read<UserInfoProvider>()
+            .updateUserInfo('imageURL', 'https://www.gravatar.com/avatar?d=mp');
+
+        Logger().i('Image URL deleted successfully');
+
+        // Ensure the widget is still mounted before calling setState
+        if (mounted) {
+          setState(() {});
+        }
+      } catch (e) {
+        // Handle specific errors or display an error message
+        Logger().e('Failed to delete image URL: $e');
+      }
+    } else {
+      // Handle the case where no user is signed in
+      Logger().i('No user is signed in.');
+    }
+  }
+
   Future<void> updateProfileimagelink(String imageURL) async {
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -180,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SingleChildScrollView(
         child: Consumer<UserInfoProvider>(
             builder: (context, userInfoProvider, child) {
-          final imageURL = userInfoProvider.userInfo['imageURL'];
+          String imageURL = userInfoProvider.userInfo['imageURL'];
           final username = userInfoProvider.userInfo['username'];
           final email = userInfoProvider.userInfo['email'];
           return Center(
@@ -209,6 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: CircleAvatar(
                           radius: 60,
                           backgroundImage:
+                              // ignore: unnecessary_null_comparison
                               imageURL != null && imageURL.isNotEmpty
                                   ? NetworkImage(
                                       imageURL) // Use NetworkImage for URL
@@ -219,17 +252,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Positioned(
                                 bottom: 6,
                                 right: 6,
-                                child: CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor:
-                                      Colors.black.withOpacity(0.5),
-                                  child: const Icon(
-                                    Icons.edit,
-                                    size: 15,
-                                    color: Colors.white,
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        selectImage();
+                                      },
+                                      child: CircleAvatar(
+                                        radius: 12,
+                                        backgroundColor:
+                                            Colors.black.withOpacity(0.5),
+                                        child: const Icon(
+                                          Icons.edit,
+                                          size: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                        width: 8), // Spacing between buttons
+                                    (imageURL !=
+                                            'https://www.gravatar.com/avatar?d=mp')
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              deleteImage(imageURL);
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 12,
+                                              backgroundColor:
+                                                  Colors.red.withOpacity(0.5),
+                                              child: const Icon(
+                                                Icons.delete,
+                                                size: 15,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : const SizedBox
+                                            .shrink(), // Hide the button when the condition is met
+                                  ],
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),

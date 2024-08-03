@@ -2,18 +2,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:myapp/models/car_model.dart';
+import 'package:myapp/providers/user_cars_provider.dart';
+import 'package:myapp/screens/Admin/add_item.dart';
+import 'package:myapp/screens/Admin/edit_cardata.dart';
 import 'package:myapp/screens/main_screen.dart';
+import 'package:provider/provider.dart';
 
-class ViewCarsPage extends StatelessWidget {
+class ViewCarsPage extends StatefulWidget {
   const ViewCarsPage({super.key});
 
-  Future<List<CarModel>> fetchCars() async {
-    final QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('cars').get();
-    return snapshot.docs
-        .map((doc) => CarModel.fromJson(doc.data() as Map<String, dynamic>))
-        .toList();
+  @override
+  // ignore: library_private_types_in_public_api
+  _ViewCarsPageState createState() => _ViewCarsPageState();
+}
+
+class _ViewCarsPageState extends State<ViewCarsPage> {
+  @override
+  void initState() {
+    super.initState();
+    fetchInitialCars();
+  }
+
+  void fetchInitialCars() {
+    context.read<CarProvider>().fetchCars().catchError((error) {
+      Logger().e('Error fetching cars: $error');
+    });
   }
 
   Future<void> deleteCar(BuildContext context, String carId) async {
@@ -50,12 +63,14 @@ class ViewCarsPage extends StatelessWidget {
         );
       } else {
         logger.e('Document with ID: $carId does not exist.');
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error: Document does not exist')),
         );
       }
     } catch (e) {
       logger.e('Error deleting car: $e');
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -67,120 +82,221 @@ class ViewCarsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('View Cars'),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.deepPurple,
+        elevation: 0,
       ),
-      body: FutureBuilder<List<CarModel>>(
-        future: fetchCars(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<CarProvider>(
+        builder: (context, carProvider, child) {
+          if (carProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No cars available'));
+          } else if (carProvider.cars.isEmpty) {
+            return const Center(
+                child: Text('No cars available',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w500)));
           }
 
-          final cars = snapshot.data!;
+          final cars = carProvider.cars;
 
-          return ListView.builder(
-            itemCount: cars.length,
-            itemBuilder: (context, index) {
-              final car = cars[index];
-              return Card(
-                margin: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: car.photos.length,
-                        itemBuilder: (context, photoIndex) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.network(car.photos[photoIndex]),
-                          );
-                        },
+          return Column(
+            //crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              SizedBox(
+                width: 200,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddItemPage(),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 68, 116, 221),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add,
+                          color: Colors.white), // Add your desired icon here
+                      SizedBox(width: 8), // Add spacing between icon and text
+                      Text(
+                        'Add Car',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView.builder(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  itemCount: cars.length,
+                  itemBuilder: (context, index) {
+                    final car = cars[index];
+                    return Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: const EdgeInsets.only(bottom: 15),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Car Name: ${car.carName}',
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                          Text('Model: ${car.model}'),
-                          Text('Year: ${car.year}'),
-                          Text('Price: \$${car.price}'),
-                          Text('Mileage: ${car.mileage} km'),
-                          Text('Condition: ${car.condition}'),
-                          Text('Phone number: ${car.tpnumber}'),
-                          Text('Location: ${car.location}'),
-                          Text('Description: ${car.description}'),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          UpdateCarPage(car: car),
+                          SizedBox(
+                            height: 200,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: car.photos.length,
+                              itemBuilder: (context, photoIndex) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      car.photos[photoIndex],
+                                      fit: BoxFit.cover,
                                     ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () async {
-                                  await deleteCar(context, car.id);
-                                  // Update UI after deletion
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('Car deleted')),
-                                  );
-                                  // Refresh the page
-                                  (context as Element).reassemble();
-                                },
-                              ),
-                            ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                  top: BorderSide(
+                                      color: Colors.grey.shade300, width: 1)),
+                              color: Colors.grey.shade100,
+                              borderRadius: const BorderRadius.vertical(
+                                  bottom: Radius.circular(12)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildInfoBox('Car Name', car.carName),
+                                _buildInfoBox('Model', car.model),
+                                _buildInfoBox('Year', car.year.toString()),
+                                _buildInfoBox('Price', '\$${car.price}'),
+                                _buildInfoBox('Mileage', '${car.mileage} km'),
+                                _buildInfoBox('Condition', car.condition),
+                                _buildInfoBox(
+                                    'Phone number', '${car.tpnumber}'),
+                                _buildInfoBox('Location', car.location),
+                                const SizedBox(height: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.deepPurple.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text('Description:',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.deepPurple)),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.deepPurple.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(car.description,
+                                      style: const TextStyle(
+                                          fontSize: 16, color: Colors.black87)),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit,
+                                          color: Colors.blue),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                UpdateCarPage(car: car),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () async {
+                                        await deleteCar(context, car.id);
+                                        carProvider.fetchCars();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
       ),
+      floatingActionButton: Stack(children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 100.0, right: 16.0),
+          child: FloatingActionButton(
+            onPressed: () {
+              context.read<CarProvider>().fetchCars();
+            },
+            backgroundColor: Colors.deepPurple,
+            child: const Icon(Icons.refresh),
+          ),
+        ),
+      ]),
     );
   }
-}
 
-class UpdateCarPage extends StatelessWidget {
-  final CarModel car;
-
-  const UpdateCarPage({super.key, required this.car});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update Car'),
-        backgroundColor: Colors.purple,
+  Widget _buildInfoBox(String title, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.deepPurple.shade50,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
-      body: Center(
-        child: Text(
-            'Update form for ${car.carName}'), // Replace this with the actual update form
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.deepPurple)),
+          Expanded(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 16, color: Colors.black87)),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -42,6 +43,7 @@ class _AddItemPageState extends State<AddItemPage> {
     _conditionController.clear();
     _descriptionController.clear();
     _locationController.clear();
+    _photos?.clear();
   }
 
   Future<void> _pickImages() async {
@@ -165,10 +167,6 @@ class _AddItemPageState extends State<AddItemPage> {
         );
         return;
       }
-
-      // Convert XFile to List of URLs after uploading to Firebase Storage
-
-      _logger.i('Uploading photos to Firebase...');
 
       try {
         // Parse numeric fields
@@ -319,9 +317,31 @@ class _AddItemPageState extends State<AddItemPage> {
                                       right: 5,
                                       child: GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            _photos!.removeAt(
-                                                index); // Remove the image
+                                          final String url = downloadUrls[
+                                              index]; // Store the URL before deletion
+                                          FirebaseStorage.instance
+                                              .refFromURL(url)
+                                              .delete()
+                                              .then((_) {
+                                            setState(() {
+                                              _photos!.removeAt(index);
+                                              downloadUrls.removeAt(index);
+                                            });
+
+                                            Logger().i(
+                                                'Deleted image from URL: $url');
+                                            Logger().i(
+                                                'downloadUrls: $downloadUrls');
+                                          }).catchError((error) {
+                                            if (error is FirebaseException &&
+                                                error.code ==
+                                                    'object-not-found') {
+                                              Logger().e(
+                                                  'Failed to delete image: No object exists at the desired reference.');
+                                            } else {
+                                              Logger().e(
+                                                  'Failed to delete image: $error');
+                                            }
                                           });
                                         },
                                         child: Container(
@@ -416,7 +436,6 @@ class _AddItemPageState extends State<AddItemPage> {
                   keyboardType: TextInputType.number),
               const SizedBox(height: 10.0),
 
-              const SizedBox(height: 10.0),
               _buildTextFormField(
                   _locationController, "Location", Icons.location_on),
               const SizedBox(height: 10.0),

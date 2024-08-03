@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/screens/Admin/add_item.dart';
 import 'package:myapp/screens/Admin/carview.dart';
-import 'package:myapp/screens/CarPages/cart_screens.dart';
 import 'package:myapp/screens/CarPages/favourite_page.dart';
 import 'package:myapp/screens/CarPages/home_page.dart';
 import 'package:myapp/screens/CarPages/profile_screen.dart';

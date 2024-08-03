@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/providers/profile_provider.dart';
+import 'package:myapp/providers/user_cars_provider.dart';
 import 'package:myapp/screens/Sign_In_Pages/splash_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +11,9 @@ Future<void> main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(
       create: (context) => UserInfoProvider(),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => CarProvider(),
     )
   ], child: const MyApp()));
 }
