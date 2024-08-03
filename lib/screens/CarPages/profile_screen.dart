@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:myapp/controllers/storage_controller.dart';
 import 'package:myapp/providers/profile_provider.dart';
+import 'package:myapp/screens/Admin/add_item.dart';
 import 'package:myapp/screens/Admin/admin_page.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 import 'package:provider/provider.dart';
@@ -310,7 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   username ??
                       'Loading...', // Replace with dynamic data if needed
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 30,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -336,6 +337,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: 14),
                       TextField(
                         controller: editusernamecontroler,
                         decoration: const InputDecoration(
@@ -385,7 +387,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       )
                     ],
                   ),
-                )
+                ),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Logout logic here
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AdminPage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(
+                          255, 40, 59, 97), // Light blue background color
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Admin Page',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
               ],
             ),
           );
@@ -394,10 +420,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const AdminPage()),
+            MaterialPageRoute(builder: (context) => const AddItemPage()),
           );
         },
-        child: const Icon(Icons.admin_panel_settings_sharp),
+        child: const Icon(Icons.add),
       ),
     );
   }
