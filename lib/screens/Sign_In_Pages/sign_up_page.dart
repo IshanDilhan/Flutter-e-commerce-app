@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:myapp/models/user_model.dart';
 import 'package:myapp/providers/profile_provider.dart';
 import 'package:myapp/screens/main_screen.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
@@ -42,15 +43,18 @@ class _SignupPageState extends State<SignupPage> {
         //     style: TextStyle(fontSize: 20.0),
         //   ),
         // ));
+        UserModel userModel = UserModel(
+          email: email,
+          userId: userCredential.user?.uid ?? '',
+          username: username,
+          favourite: [],
+          cartItems: [],
+          imageURL: "https://www.gravatar.com/avatar?d=mp",
+        );
 
+        // Convert UserModel to a map
+        Map<String, dynamic> userInfoMap = userModel.toJson();
         // Create a map of user information
-        Map<String, dynamic> userInfoMap = {
-          "email": email,
-          "userId": userCredential.user?.uid,
-          "username": username,
-          "imageURL": "https://www.gravatar.com/avatar?d=mp",
-          // Add other user info fields if necessary
-        };
 
         // Add user info to Firestore
         await DatabaseMethods().addUser(userCredential.user!.uid, userInfoMap);
@@ -61,7 +65,7 @@ class _SignupPageState extends State<SignupPage> {
         logger.i(
             "User information stored successfully in Firestore for user: ${userCredential.user?.email}");
         // ignore: use_build_context_synchronously
-        Navigator.push(
+        Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),

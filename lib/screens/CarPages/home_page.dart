@@ -1,6 +1,9 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:myapp/models/car_model.dart';
 import 'package:myapp/providers/user_cars_provider.dart';
 import 'package:myapp/screens/CarPages/car_details_page.dart';
 import 'package:provider/provider.dart';
@@ -16,9 +19,95 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   bool _isSearchVisible = false;
+  User? user = FirebaseAuth.instance.currentUser;
+  List<String> favourites = [];
   @override
   void initState() {
     super.initState();
+    fetchInitialCars();
+    fetchFavoriteCarIds();
+  }
+
+  void fetchInitialCars() {
+    context.read<CarProvider>().fetchCars().catchError((error) {
+      Logger().e('Error fetching cars: $error');
+    });
+  }
+
+  Future<List<String>> fetchFavoriteCarIds() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user?.uid)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        final favoriteCars = List<dynamic>.from(data?['favourite'] ?? []);
+
+        // Extract IDs from the list of CarModel objects
+        final favoriteCarIds = favoriteCars
+            .map((item) {
+              if (item is Map<String, dynamic>) {
+                return item['id'] as String;
+              } else {
+                return '';
+              }
+            })
+            .where((id) => id.isNotEmpty)
+            .toList();
+
+        setState(() {
+          favourites = favoriteCarIds;
+        });
+
+        Logger().i(favoriteCarIds);
+        return favoriteCarIds;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      Logger().e('Error fetching favorite car IDs: $e');
+      return [];
+    }
+  }
+
+  Future<void> addToFavorites(CarModel car) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user?.uid)
+          .update({
+        'favourite': FieldValue.arrayUnion([car.toJson()]),
+      });
+      setState(() {
+        favourites.add(car.id);
+      });
+      Logger().i('Car "${car.carName}" added to favorites.');
+    } catch (e) {
+      Logger().e('Error adding car to favorite: $e');
+    }
+  }
+
+  Future<void> removeFromFavorites(CarModel car) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user?.uid)
+          .update({
+        'favourite': FieldValue.arrayRemove([car.toJson()]),
+      });
+      setState(() {
+        favourites.remove(car.id);
+      });
+      Logger().i('Car "${car.carName}" removed from favorite.');
+    } catch (e) {
+      Logger().e('Error removing car from favorites: $e');
+    }
+  }
+
+  bool isFavorite(String carId) {
+    return favourites.contains(carId);
   }
 
   @override
@@ -110,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search by car name...',
                       filled: true,
-                      fillColor: Color.fromARGB(255, 248, 248, 250),
+                      fillColor: const Color.fromARGB(255, 248, 248, 250),
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -146,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 140.0, // Reduced height
                     autoPlay: true,
                     enlargeCenterPage: true,
-                    aspectRatio: 16 / 9,
+                    aspectRatio: 1,
                     viewportFraction: 0.8,
                     enableInfiniteScroll: true,
                     autoPlayInterval: const Duration(seconds: 4),
@@ -158,10 +247,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       builder: (BuildContext context) {
                         return GestureDetector(
                           onTap: () {
+                            isFavorite(car.id);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => CarDetailsView(car: car),
+                                builder: (context) => CarDetailsView(
+                                    car: car, isfavourite: isFavorite(car.id)),
                               ),
                             );
                           },
@@ -250,7 +341,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => CarDetailsView(car: car),
+                                builder: (context) => CarDetailsView(
+                                    car: car, isfavourite: isFavorite(car.id)),
                               ),
                             );
                           },
@@ -362,15 +454,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: Colors.green,
                                       onPressed: () {
                                         // Add to cart logic
-                                        print('Added to cart');
+                                        Logger().i('Added to cart');
                                       },
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.favorite_border),
-                                      color: Colors.red,
-                                      onPressed: () {
-                                        // Add to favorites logic
-                                        print('Marked as favorite');
+                                      icon: Icon(
+                                        isFavorite(car.id)
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () async {
+                                        await (isFavorite(car.id)
+                                            ? removeFromFavorites(car)
+                                            : addToFavorites(car));
+                                        Logger().i(isFavorite(car.id)
+                                            ? 'Removed from favorites'
+                                            : 'Marked as favorite');
                                       },
                                     ),
                                   ],

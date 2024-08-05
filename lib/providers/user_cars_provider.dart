@@ -25,7 +25,7 @@ class CarProvider with ChangeNotifier {
     _logger.i("Fetching cars for user: ${user.uid}");
     final QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('cars')
-        .where('userId', isEqualTo: user.uid)
+        .orderBy('id', descending: true)
         .get();
 
     _cars = snapshot.docs
