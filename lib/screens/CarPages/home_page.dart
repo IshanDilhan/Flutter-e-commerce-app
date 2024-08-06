@@ -1,9 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:myapp/models/car_model.dart';
+import 'package:myapp/providers/car_list_provider.dart';
 import 'package:myapp/providers/user_cars_provider.dart';
 import 'package:myapp/screens/CarPages/car_details_page.dart';
 import 'package:provider/provider.dart';
@@ -19,95 +17,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   bool _isSearchVisible = false;
-  User? user = FirebaseAuth.instance.currentUser;
-  List<String> favourites = [];
+
   @override
   void initState() {
     super.initState();
     fetchInitialCars();
-    fetchFavoriteCarIds();
   }
 
   void fetchInitialCars() {
     context.read<CarProvider>().fetchCars().catchError((error) {
       Logger().e('Error fetching cars: $error');
     });
-  }
-
-  Future<List<String>> fetchFavoriteCarIds() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(user?.uid)
-          .get();
-
-      if (doc.exists) {
-        final data = doc.data();
-        final favoriteCars = List<dynamic>.from(data?['favourite'] ?? []);
-
-        // Extract IDs from the list of CarModel objects
-        final favoriteCarIds = favoriteCars
-            .map((item) {
-              if (item is Map<String, dynamic>) {
-                return item['id'] as String;
-              } else {
-                return '';
-              }
-            })
-            .where((id) => id.isNotEmpty)
-            .toList();
-
-        setState(() {
-          favourites = favoriteCarIds;
-        });
-
-        Logger().i(favoriteCarIds);
-        return favoriteCarIds;
-      } else {
-        return [];
-      }
-    } catch (e) {
-      Logger().e('Error fetching favorite car IDs: $e');
-      return [];
-    }
-  }
-
-  Future<void> addToFavorites(CarModel car) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('User')
-          .doc(user?.uid)
-          .update({
-        'favourite': FieldValue.arrayUnion([car.toJson()]),
-      });
-      setState(() {
-        favourites.add(car.id);
-      });
-      Logger().i('Car "${car.carName}" added to favorites.');
-    } catch (e) {
-      Logger().e('Error adding car to favorite: $e');
-    }
-  }
-
-  Future<void> removeFromFavorites(CarModel car) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('User')
-          .doc(user?.uid)
-          .update({
-        'favourite': FieldValue.arrayRemove([car.toJson()]),
-      });
-      setState(() {
-        favourites.remove(car.id);
-      });
-      Logger().i('Car "${car.carName}" removed from favorite.');
-    } catch (e) {
-      Logger().e('Error removing car from favorites: $e');
-    }
-  }
-
-  bool isFavorite(String carId) {
-    return favourites.contains(carId);
   }
 
   @override
@@ -210,8 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             : null,
       ),
-      body: Consumer<CarProvider>(
-        builder: (context, carProvider, child) {
+      body: Consumer2<CarProvider, CarListProvider>(
+        builder: (context, carProvider, CarListProvider, child) {
           if (carProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (carProvider.cars.isEmpty) {
@@ -247,12 +167,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       builder: (BuildContext context) {
                         return GestureDetector(
                           onTap: () {
-                            isFavorite(car.id);
+                            CarListProvider.isFavorite(car.id);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => CarDetailsView(
-                                    car: car, isfavourite: isFavorite(car.id)),
+                                    car: car,
+                                    isfavourite:
+                                        CarListProvider.isFavorite(car.id),
+                                    iscart: CarListProvider.isCart(car.id)),
                               ),
                             );
                           },
@@ -342,7 +265,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => CarDetailsView(
-                                    car: car, isfavourite: isFavorite(car.id)),
+                                  car: car,
+                                  isfavourite:
+                                      CarListProvider.isFavorite(car.id),
+                                  iscart: CarListProvider.isCart(car.id),
+                                ),
                               ),
                             );
                           },
@@ -450,27 +377,42 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.add_shopping_cart),
-                                      color: Colors.green,
-                                      onPressed: () {
-                                        // Add to cart logic
-                                        Logger().i('Added to cart');
+                                      icon: Icon(
+                                        CarListProvider.isCart(car.id)
+                                            ? Icons.shopping_cart_rounded
+                                            : Icons.shopping_cart_outlined,
+                                        color: Colors.green,
+                                        size: 29,
+                                      ),
+                                      onPressed: () async {
+                                        await (CarListProvider.isCart(car.id)
+                                            ? CarListProvider.removeFromCart(
+                                                car)
+                                            : CarListProvider.addToCart(car));
+                                        Logger().i(
+                                            CarListProvider.isCart(car.id)
+                                                ? 'Removed from carts'
+                                                : 'Marked as carts');
                                       },
                                     ),
                                     IconButton(
                                       icon: Icon(
-                                        isFavorite(car.id)
+                                        CarListProvider.isFavorite(car.id)
                                             ? Icons.favorite
                                             : Icons.favorite_border,
                                         color: Colors.red,
                                       ),
                                       onPressed: () async {
-                                        await (isFavorite(car.id)
-                                            ? removeFromFavorites(car)
-                                            : addToFavorites(car));
-                                        Logger().i(isFavorite(car.id)
-                                            ? 'Removed from favorites'
-                                            : 'Marked as favorite');
+                                        await (CarListProvider.isFavorite(
+                                                car.id)
+                                            ? CarListProvider
+                                                .removeFromFavorites(car)
+                                            : CarListProvider.addToFavorites(
+                                                car));
+                                        Logger().i(
+                                            CarListProvider.isFavorite(car.id)
+                                                ? 'Removed from favorites'
+                                                : 'Marked as favorite');
                                       },
                                     ),
                                   ],
@@ -485,6 +427,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            fetchInitialCars();
+            context.read<CarListProvider>().fetchFavoriteCarIds();
+            context.read<CarListProvider>().fetchCartCarIds();
+          });
+        },
+        child: const Icon(Icons.refresh),
       ),
     );
   }

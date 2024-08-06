@@ -1,18 +1,19 @@
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:myapp/models/car_model.dart';
+import 'package:myapp/providers/car_list_provider.dart';
+import 'package:provider/provider.dart';
 
 class CarDetailsView extends StatefulWidget {
   final CarModel car;
   final bool isfavourite;
+  final bool iscart;
 
   const CarDetailsView({
     super.key,
     required this.car,
     required this.isfavourite,
+    required this.iscart,
   });
 
   @override
@@ -22,47 +23,15 @@ class CarDetailsView extends StatefulWidget {
 
 class _CarDetailsViewState extends State<CarDetailsView> {
   late bool isFavourite;
+  late bool iscart;
   late CarModel car;
 
   @override
   void initState() {
     super.initState();
     isFavourite = widget.isfavourite;
+    iscart = widget.iscart;
     car = widget.car;
-  }
-
-  Future<void> addToFavorites(CarModel car) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('User')
-          .doc(FirebaseAuth.instance.currentUser?.uid)
-          .update({
-        'favourite': FieldValue.arrayUnion([car.toJson()]),
-      });
-      setState(() {
-        isFavourite = true;
-      });
-      Logger().i('Car "${car.carName}" added to favorites.');
-    } catch (e) {
-      Logger().e('Error adding car to favorites: $e');
-    }
-  }
-
-  Future<void> removeFromFavorites(CarModel car) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('User')
-          .doc(FirebaseAuth.instance.currentUser?.uid)
-          .update({
-        'favourite': FieldValue.arrayRemove([car.toJson()]),
-      });
-      setState(() {
-        isFavourite = false;
-      });
-      Logger().i('Car "${car.carName}" removed from favorites.');
-    } catch (e) {
-      Logger().e('Error removing car from favorites: $e');
-    }
   }
 
   @override
@@ -195,38 +164,63 @@ class _CarDetailsViewState extends State<CarDetailsView> {
                             color: Colors.black87,
                           ),
                         ),
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                onPressed: () async {
-                                  if (isFavourite) {
-                                    await removeFromFavorites(widget.car);
-                                  } else {
-                                    await addToFavorites(widget.car);
-                                  }
-                                },
-                                icon: Icon(
-                                  isFavourite
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: const Color.fromARGB(255, 190, 24, 38),
-                                  size: 32,
+                        Consumer<CarListProvider>(
+                            builder: (context, carListProvider, child) {
+                          return Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () async {
+                                    if (isFavourite) {
+                                      await carListProvider
+                                          .removeFromFavorites(car);
+                                      setState(() {
+                                        isFavourite = false;
+                                      });
+                                    } else {
+                                      await carListProvider.addToFavorites(car);
+                                      setState(() {
+                                        isFavourite = true;
+                                      });
+                                    }
+                                  },
+                                  icon: Icon(
+                                    isFavourite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color:
+                                        const Color.fromARGB(255, 190, 24, 38),
+                                    size: 32,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              IconButton(
-                                onPressed: () {
-                                  // Handle add to cart action
-                                },
-                                icon: const Icon(Icons.shopping_cart),
-                                color: const Color.fromARGB(255, 207, 23, 60),
-                                iconSize: 32,
-                              ),
-                            ],
-                          ),
-                        ),
+                                const SizedBox(width: 16),
+                                IconButton(
+                                  onPressed: () async {
+                                    if (iscart) {
+                                      await carListProvider.removeFromCart(car);
+                                      setState(() {
+                                        iscart = false;
+                                      });
+                                    } else {
+                                      await carListProvider.addToCart(car);
+                                      setState(() {
+                                        iscart = true;
+                                      });
+                                    }
+                                  },
+                                  icon: Icon(
+                                    iscart
+                                        ? Icons.shopping_cart_rounded
+                                        : Icons.shopping_cart_outlined,
+                                    color: Colors.green,
+                                    size: 32,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),

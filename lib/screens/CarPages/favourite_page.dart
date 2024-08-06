@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:myapp/models/car_model.dart';
+import 'package:myapp/providers/car_list_provider.dart';
 import 'package:myapp/screens/CarPages/car_details_page.dart';
+import 'package:provider/provider.dart';
 
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
@@ -65,43 +67,28 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Favorites',
-          style: TextStyle(
-            fontFamily: 'Raleway',
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 58, 123, 213),
-                Color.fromARGB(255, 0, 210, 255),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        backgroundColor: const Color.fromARGB(255, 107, 123, 202),
+        elevation: 0,
+        title: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                'Your Favorites',
+                style: TextStyle(
+                  fontFamily: 'BebasNeue-Regular',
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 33, 35, 37),
+                ),
+              ),
             ),
-          ),
+            SizedBox(
+              height: 10,
+            ),
+          ],
         ),
-        elevation: 10,
-        shadowColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Implement search functionality
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Implement notifications functionality
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: Container(
@@ -157,8 +144,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  CarDetailsView(car: car, isfavourite: true),
+                              builder: (context) => CarDetailsView(
+                                  car: car,
+                                  isfavourite: true,
+                                  iscart: context
+                                      .read<CarListProvider>()
+                                      .isCart(car.id)),
                             ),
                           );
                         },

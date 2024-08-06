@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/providers/car_list_provider.dart';
 import 'package:myapp/providers/profile_provider.dart';
 import 'package:myapp/providers/user_cars_provider.dart';
 import 'package:myapp/screens/Sign_In_Pages/splash_screen.dart';
@@ -14,6 +15,9 @@ Future<void> main() async {
     ),
     ChangeNotifierProvider(
       create: (context) => CarProvider(),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => CarListProvider(),
     )
   ], child: const MyApp()));
 }
