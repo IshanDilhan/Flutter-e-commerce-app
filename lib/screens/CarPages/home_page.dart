@@ -131,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
             : null,
       ),
       body: Consumer2<CarProvider, CarListProvider>(
+        // ignore: avoid_types_as_parameter_names, non_constant_identifier_names
         builder: (context, carProvider, CarListProvider, child) {
           if (carProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());

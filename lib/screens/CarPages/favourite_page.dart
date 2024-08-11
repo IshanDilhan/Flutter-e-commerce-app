@@ -263,6 +263,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                   });
                                   setState(() {
                                     favouriteCars.removeAt(index);
+                                    Provider.of<CarListProvider>(context,
+                                            listen: false)
+                                        .removeFromFavorites(car);
                                   });
                                 },
                               ),
