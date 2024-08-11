@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:myapp/models/car_model.dart';
 import 'package:myapp/providers/car_list_provider.dart';
+import 'package:myapp/providers/payment_provider.dart';
 import 'package:myapp/screens/CarPages/car_details_page.dart';
 import 'package:provider/provider.dart';
 
@@ -336,7 +337,9 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                     onPressed: () {
-                      // Implement the buy now functionality here
+                      Provider.of<PaymentProvider>(context, listen: false)
+                          .getPayment(
+                              (totalPrice * 100).toInt().toString(), context);
                     },
                     child: const Text(
                       'Buy Now',
