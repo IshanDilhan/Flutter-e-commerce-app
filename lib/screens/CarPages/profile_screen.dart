@@ -10,6 +10,7 @@ import 'package:myapp/controllers/storage_controller.dart';
 import 'package:myapp/providers/profile_provider.dart';
 import 'package:myapp/screens/Admin/add_item.dart';
 import 'package:myapp/screens/Admin/admin_page.dart';
+import 'package:myapp/screens/Admin/payment_details.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 import 'package:provider/provider.dart';
 
@@ -408,6 +409,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: const Text(
                       'Admin Page',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Logout logic here
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const PaymentDetailsPage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(
+                          255, 40, 59, 97), // Light blue background color
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Payments',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
