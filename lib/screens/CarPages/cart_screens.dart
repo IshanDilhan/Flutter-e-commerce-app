@@ -5,7 +5,6 @@ import 'package:logger/logger.dart';
 import 'package:myapp/models/car_model.dart';
 import 'package:myapp/providers/car_list_provider.dart';
 import 'package:myapp/providers/payment_provider.dart';
-import 'package:myapp/screens/Admin/payment_details.dart';
 import 'package:myapp/screens/CarPages/car_details_page.dart';
 import 'package:provider/provider.dart';
 

@@ -36,8 +36,8 @@ class PaymentProvider extends ChangeNotifier {
           Logger().i("Payment Success");
 
           // Store transaction details after payment success
-          await storeTransactionDetails(cars, amount);
-          await storeTransactionDetails(cars, amount);
+          return storeTransactionDetails(cars, amount);
+        }).then((_) {
           // Navigate after the transaction details have been stored
           Navigator.push(
             context,
