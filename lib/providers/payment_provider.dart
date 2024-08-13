@@ -54,10 +54,14 @@ class PaymentProvider extends ChangeNotifier {
       } else {
         Logger().e('Failed to create Payment Intent');
         _showErrorSnackbar(
-            "Failed to create payment intent. Please try again.", context);
+            // ignore: use_build_context_synchronously
+            "Failed to create payment intent. Please try again.",
+            // ignore: use_build_context_synchronously
+            context);
       }
     } catch (e) {
       Logger().e('Error during payment process: $e');
+      // ignore: use_build_context_synchronously
       _showErrorSnackbar("An error occurred. Please try again.", context);
     }
   }

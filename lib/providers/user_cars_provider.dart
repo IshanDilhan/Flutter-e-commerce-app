@@ -23,10 +23,8 @@ class CarProvider with ChangeNotifier {
     // notifyListeners();
 
     _logger.i("Fetching cars for user: ${user.uid}");
-    final QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('cars')
-        .orderBy('id', descending: true)
-        .get();
+    final QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('cars').orderBy('id').get();
 
     _cars = snapshot.docs
         .map((doc) => CarModel.fromJson(doc.data() as Map<String, dynamic>))

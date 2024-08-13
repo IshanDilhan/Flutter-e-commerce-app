@@ -22,36 +22,53 @@ class AuthMethods {
     try {
       final GoogleSignInAccount? googleSignInAccount =
           await googleSignIn.signIn();
-      final GoogleSignInAuthentication? googleSignInAuthentication =
-          await googleSignInAccount?.authentication;
+
+      if (googleSignInAccount == null) {
+        logger.e("Google Sign-In aborted by user");
+        return;
+      }
+
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.credential(
-          idToken: googleSignInAuthentication?.idToken,
-          accessToken: googleSignInAuthentication?.accessToken);
+        idToken: googleSignInAuthentication.idToken,
+        accessToken: googleSignInAuthentication.accessToken,
+      );
 
       UserCredential result =
           await firebaseAuth.signInWithCredential(credential);
 
       User? userDetails = result.user;
 
-      logger.i("Google sign-in successful: ${userDetails?.email}");
+      if (userDetails == null) {
+        logger.e("Failed to retrieve user details after Google Sign-In");
+        return;
+      }
+
+      logger.i("Google sign-in successful: ${userDetails.email}");
+
       Map<String, dynamic> userInfoMap = {
-        "email": userDetails!.email,
-        "name": userDetails.displayName,
-        "imgUrl": userDetails.photoURL,
-        "id": userDetails.uid
+        "email": userDetails.email,
+        "username": userDetails.displayName,
+        "imageURL": userDetails.photoURL,
+        "userId": userDetails.uid,
+        "favourite": [],
+        "cartItems": [],
       };
+
       // ignore: use_build_context_synchronously
       context.read<UserInfoProvider>().setUserInfo(userInfoMap);
-      Logger().i("saved in provider");
+      logger.i("User info saved in provider");
 
-      await DatabaseMethods()
-          .addUser(userDetails.uid, userInfoMap)
-          .then((value) {
-        logger.i("User data added to database for user: ${userDetails.uid}");
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
-      });
+      await DatabaseMethods().addUser(userDetails.uid, userInfoMap);
+      logger.i("User data added to database for user: ${userDetails.uid}");
+
+      Navigator.push(
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
     } catch (e) {
       logger.e("Error during Google Sign-In: $e");
     }

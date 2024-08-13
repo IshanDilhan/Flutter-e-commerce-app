@@ -32,13 +32,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
+    try {
+      await FirebaseAuth.instance.signOut();
+      // Delay for the sign-out to be processed before navigating
+      await Future.delayed(const Duration(milliseconds: 3500));
 
-    Navigator.pushReplacement(
       // ignore: use_build_context_synchronously
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      Logger().e('Error during logout: $e');
+    }
   }
 
   Future<void> updateUsername(String newUsername) async {

@@ -10,11 +10,37 @@ class CarListProvider extends ChangeNotifier {
   List<String> carts = [];
 
   CarListProvider() {
-    fetchFavoriteCarIds();
-    fetchCartCarIds();
+    _initializeUserData();
+  }
+  Future<void> _initializeUserData() async {
+    await initializeUserDocument();
+    await fetchFavoriteCarIds();
+    await fetchCartCarIds();
+  }
+
+  Future<void> initializeUserDocument() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user?.uid)
+          .get();
+
+      if (!doc.exists) {
+        await FirebaseFirestore.instance.collection('User').doc(user?.uid).set({
+          'favourite': [],
+          'cartItems': [],
+        });
+        Logger().i('User document created');
+      } else {
+        Logger().i('User document already exists');
+      }
+    } catch (e) {
+      Logger().e('Error initializing user document: $e');
+    }
   }
 
   Future<void> fetchFavoriteCarIds() async {
+    await initializeUserDocument();
     try {
       final doc = await FirebaseFirestore.instance
           .collection('User')
@@ -46,6 +72,7 @@ class CarListProvider extends ChangeNotifier {
   }
 
   Future<void> fetchCartCarIds() async {
+    await initializeUserDocument();
     try {
       final doc = await FirebaseFirestore.instance
           .collection('User')
@@ -77,6 +104,7 @@ class CarListProvider extends ChangeNotifier {
   }
 
   Future<void> addToFavorites(CarModel car) async {
+    await initializeUserDocument();
     try {
       await FirebaseFirestore.instance
           .collection('User')
@@ -90,6 +118,7 @@ class CarListProvider extends ChangeNotifier {
     } catch (e) {
       Logger().e('Error adding car to favorite: $e');
     }
+    notifyListeners();
   }
 
   Future<void> removeFromFavorites(CarModel car) async {
@@ -126,6 +155,7 @@ class CarListProvider extends ChangeNotifier {
     } catch (e) {
       Logger().e('Error adding car to cart: $e');
     }
+    notifyListeners();
   }
 
   Future<void> removeFromCart(CarModel car) async {
