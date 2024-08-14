@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -214,6 +215,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> deleteUserAccount(BuildContext context) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // Delete all images associated with the user
+        await _deleteUserImages(user.uid);
+
+        // Delete user document from Firestore
+        await FirebaseFirestore.instance
+            .collection('User')
+            .doc(user.uid)
+            .delete();
+
+        // Sign the user out
+        await FirebaseAuth.instance.signOut();
+
+        // Navigate to the login page
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
+
+        Logger().i('User account and associated images deleted successfully.');
+      } catch (e) {
+        Logger().e('Failed to delete user account: $e');
+        // Show an error message if needed
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete account: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteUserImages(String userId) async {
+    // Assuming the images are stored with the userId as part of the path
+    final imageRef =
+        FirebaseStorage.instance.ref().child('images').child('$userId.jpg');
+
+    try {
+      // Delete the profile image
+      await imageRef.delete();
+      Logger().i('Profile image deleted successfully.');
+    } catch (e) {
+      Logger().e('Failed to delete profile image: $e');
+      // Handle specific errors if needed
+    }
+
+    // If there are other images, delete them similarly
+    // You can add additional logic to delete other images related to the user
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -396,50 +451,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 Center(
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: () {
-                      // Logout logic here
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => const AdminPage()),
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(
-                          255, 40, 59, 97), // Light blue background color
-
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                    ),
-                    child: const Text(
+                    icon: const Icon(Icons.admin_panel_settings,
+                        color: Colors.white),
+                    label: const Text(
                       'Admin Page',
                       style: TextStyle(color: Colors.white),
                     ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(
+                          255, 40, 59, 97), // Light blue background color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0,
+                          horizontal: 24.0), // Adjust padding as needed
+                    ),
                   ),
                 ),
+                const SizedBox(height: 5), // Add spacing between buttons
+
                 Center(
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: () {
-                      // Logout logic here
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => const PaymentDetailsPage()),
                       );
                     },
+                    icon: const Icon(Icons.payment, color: Colors.white),
+                    label: const Text(
+                      'Payments',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(
                           255, 40, 59, 97), // Light blue background color
-
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
                       ),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0,
+                          horizontal: 24.0), // Adjust padding as needed
                     ),
-                    child: const Text(
-                      'Payments',
-                      style: TextStyle(color: Colors.white),
+                  ),
+                ),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Logout logic here
+                    deleteUserAccount(context);
+                  },
+                  icon: const Icon(Icons.delete,
+                      color: Colors.white), // Add your desired icon here
+                  label: const Text('Delete Account'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.red, // Text color
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),

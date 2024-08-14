@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:myapp/models/user_model.dart';
 import 'package:myapp/providers/profile_provider.dart';
-import 'package:myapp/screens/Sign_In_Pages/splash_screen.dart';
 import 'package:myapp/screens/Sign_In_Pages/login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/screens/main_screen.dart';
 import 'package:myapp/service/database.dart';
 import 'package:provider/provider.dart';
 
@@ -68,7 +68,7 @@ class _SignupPageState extends State<SignupPage> {
         Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
-          MaterialPageRoute(builder: (context) => const SplashScreen()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {

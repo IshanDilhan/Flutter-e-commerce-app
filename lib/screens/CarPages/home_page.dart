@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: MediaQuery.of(context).size.height * 0.10,
         backgroundColor: const Color.fromARGB(255, 107, 123, 202),
         elevation: 0,
         title: Column(
@@ -61,13 +62,13 @@ class _HomeScreenState extends State<HomeScreen> {
             //     ),
             //   ),
             // ),
-            // const SizedBox(
-            //     height: 4), // Spacing between company name and welcome message
+            const SizedBox(
+                height: 14), // Spacing between company name and welcome message
             Consumer<UserInfoProvider>(
               builder: (context, userInfoProvider, child) {
                 final username = userInfoProvider.userInfo["username"];
                 return Align(
-                  alignment: Alignment.topLeft,
+                  alignment: Alignment.bottomLeft,
                   child: Column(
                     children: [
                       Text(
@@ -92,17 +93,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(_isSearchVisible ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearchVisible = !_isSearchVisible;
-                if (!_isSearchVisible) {
-                  _searchQuery =
-                      ''; // Clear search query when hiding search bar
-                }
-              });
-            },
+          Padding(
+            padding: const EdgeInsets.only(
+                right: 8.0), // Adjust this value as needed
+            child: IconButton(
+              iconSize: 30,
+              icon: Icon(_isSearchVisible ? Icons.close : Icons.search),
+              onPressed: () {
+                setState(() {
+                  _isSearchVisible = !_isSearchVisible;
+                  if (!_isSearchVisible) {
+                    _searchQuery =
+                        ''; // Clear search query when hiding search bar
+                  }
+                });
+              },
+            ),
           ),
         ],
         bottom: _isSearchVisible

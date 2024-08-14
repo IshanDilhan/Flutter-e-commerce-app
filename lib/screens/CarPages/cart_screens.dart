@@ -83,13 +83,17 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        toolbarHeight: MediaQuery.of(context).size.height * 0.10,
         backgroundColor: const Color.fromARGB(255, 107, 123, 202),
         elevation: 0,
         title: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              height: 30,
+            ),
             Align(
-              alignment: Alignment.topLeft,
+              alignment: Alignment.bottomLeft,
               child: Text(
                 'Your Carts',
                 style: TextStyle(
