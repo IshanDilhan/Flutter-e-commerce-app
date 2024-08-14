@@ -262,7 +262,7 @@ class _CarDetailsViewState extends State<CarDetailsView> {
               value,
               textAlign: TextAlign.right,
               style: const TextStyle(
-                fontSize: 2,
+                fontSize: 18,
                 color: Color.fromARGB(255, 5, 5, 5),
               ),
             ),

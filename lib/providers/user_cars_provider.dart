@@ -36,4 +36,30 @@ class CarProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  Future<void> fetchusersavedones() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _logger.e("No user is currently logged in.");
+      throw Exception("No user is currently logged in.");
+    }
+
+    _isLoading = true;
+    // notifyListeners();
+
+    _logger.i("Fetching cars for user: ${user.uid}");
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('cars')
+        .where('userId', isEqualTo: user.uid)
+        .orderBy('registrationDateTime', descending: true)
+        .get();
+
+    _cars = snapshot.docs
+        .map((doc) => CarModel.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
+
+    _logger.i("Fetched usersaved  ${_cars.length} cars.");
+    _isLoading = false;
+    notifyListeners();
+  }
 }

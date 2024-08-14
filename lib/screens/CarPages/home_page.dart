@@ -34,8 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: MediaQuery.of(context).size.height * 0.10,
+        toolbarHeight: MediaQuery.of(context).size.height * 0.06,
         backgroundColor: const Color.fromARGB(255, 107, 123, 202),
+        automaticallyImplyLeading: false,
         elevation: 0,
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,

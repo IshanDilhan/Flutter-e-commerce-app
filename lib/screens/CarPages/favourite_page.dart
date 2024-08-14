@@ -67,14 +67,15 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        toolbarHeight: MediaQuery.of(context).size.height * 0.10,
+        toolbarHeight: MediaQuery.of(context).size.height * 0.06,
         backgroundColor: const Color.fromARGB(255, 107, 123, 202),
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: 30,
+              height: 20,
             ),
             Align(
               alignment: Alignment.bottomLeft,

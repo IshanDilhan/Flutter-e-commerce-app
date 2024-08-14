@@ -24,7 +24,7 @@ class _ViewCarsPageState extends State<ViewCarsPage> {
   }
 
   void fetchInitialCars() {
-    context.read<CarProvider>().fetchCars().catchError((error) {
+    context.read<CarProvider>().fetchusersavedones().catchError((error) {
       Logger().e('Error fetching cars: $error');
     });
   }
