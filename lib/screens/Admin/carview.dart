@@ -258,10 +258,15 @@ class _ViewCarsPageState extends State<ViewCarsPage> {
           padding: const EdgeInsets.only(bottom: 100.0, right: 16.0),
           child: FloatingActionButton(
             onPressed: () {
-              context.read<CarProvider>().fetchCars();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                ),
+              );
             },
             backgroundColor: Colors.deepPurple,
-            child: const Icon(Icons.refresh),
+            child: const Icon(Icons.home),
           ),
         ),
       ]),

@@ -177,19 +177,19 @@ class _AddItemPageState extends State<AddItemPage> {
 
         // Create CarModel instance
         final car = CarModel(
-          id: FirebaseFirestore.instance.collection('cars').doc().id,
-          userId: user.uid,
-          carName: _carNameController.text,
-          model: _modelController.text,
-          year: year,
-          price: price,
-          mileage: mileage,
-          tpnumber: tpnumber,
-          condition: _conditionController.text,
-          description: _descriptionController.text,
-          location: _locationController.text,
-          photos: downloadUrls,
-        );
+            id: FirebaseFirestore.instance.collection('cars').doc().id,
+            userId: user.uid,
+            carName: _carNameController.text,
+            model: _modelController.text,
+            year: year,
+            price: price,
+            mileage: mileage,
+            tpnumber: tpnumber,
+            condition: _conditionController.text,
+            description: _descriptionController.text,
+            location: _locationController.text,
+            photos: downloadUrls,
+            registrationDateTime: DateTime.now());
         // Logger().t(car.tpnumber);
         _logger.i('Storing car data in Firestore...');
         await FirebaseFirestore.instance

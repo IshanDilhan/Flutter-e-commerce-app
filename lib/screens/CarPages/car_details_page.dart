@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:myapp/models/car_model.dart';
 import 'package:myapp/providers/car_list_provider.dart';
 import 'package:provider/provider.dart';
@@ -146,6 +147,11 @@ class _CarDetailsViewState extends State<CarDetailsView> {
                         _buildInfoRow(
                             Icons.location_on, 'Location', car.location),
                         _buildInfoRow(
+                            Icons.phone,
+                            'registered date',
+                            DateFormat.yMMMMd()
+                                .format(car.registrationDateTime)),
+                        _buildInfoRow(
                             Icons.phone, 'Phone number', '${car.tpnumber}'),
                         const SizedBox(height: 10),
                         const Text(
@@ -256,7 +262,7 @@ class _CarDetailsViewState extends State<CarDetailsView> {
               value,
               textAlign: TextAlign.right,
               style: const TextStyle(
-                fontSize: 22,
+                fontSize: 2,
                 color: Color.fromARGB(255, 5, 5, 5),
               ),
             ),

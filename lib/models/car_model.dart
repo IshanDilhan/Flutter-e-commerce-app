@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class CarModel {
   String id;
   String userId;
@@ -11,21 +13,22 @@ class CarModel {
   String description;
   String location;
   List<String> photos;
+  DateTime registrationDateTime;
 
-  CarModel({
-    required this.id,
-    required this.userId,
-    required this.carName,
-    required this.model,
-    required this.year,
-    required this.price,
-    required this.mileage,
-    required this.tpnumber,
-    required this.condition,
-    required this.description,
-    required this.location,
-    required this.photos,
-  });
+  CarModel(
+      {required this.id,
+      required this.userId,
+      required this.carName,
+      required this.model,
+      required this.year,
+      required this.price,
+      required this.mileage,
+      required this.tpnumber,
+      required this.condition,
+      required this.description,
+      required this.location,
+      required this.photos,
+      required this.registrationDateTime});
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
     return CarModel(
@@ -41,7 +44,9 @@ class CarModel {
       description: json['description'],
       location: json['location'],
       photos: List<String>.from(json['photos']),
-    );
+      registrationDateTime:
+          (json['registrationDateTime'] as Timestamp).toDate(),
+    ); // Convert Timestamp to DateTime
   }
 
   Map<String, dynamic> toJson() {
@@ -58,6 +63,7 @@ class CarModel {
       'description': description,
       'location': location,
       'photos': photos,
+      'registrationDateTime': registrationDateTime,
     };
   }
 }
